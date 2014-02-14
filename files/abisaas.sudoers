@@ -1,0 +1,2 @@
+AbiSaaS ALL=(ALL) NOPASSWD: /usr/sbin/service 
+AbiSaaS ALL=(ALL) NOPASSWD: /etc/init.d/httpd
