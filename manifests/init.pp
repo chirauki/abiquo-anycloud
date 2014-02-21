@@ -86,6 +86,13 @@ class anycloud {
   class { 'selinux': 
     mode => 'disabled'
   }
+
+  host { 'Add hostname to /etc/hosts':
+    ensure        => present,
+    name          => $::hostname,
+    ip            => $::ipaddress,
+    host_aliases  => $::fqdn
+  }
   
   group { ['deployers', 'AbiSaaS']:
     ensure  => present,
