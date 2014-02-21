@@ -88,10 +88,9 @@ class anycloud {
   }
 
   host { 'Add hostname to /etc/hosts':
-    ensure        => present,
-    name          => $::hostname,
-    ip            => $::ipaddress,
-    host_aliases  => $::fqdn
+    ensure  => present,
+    name    => $::hostname,
+    ip      => $::ipaddress,
   }
   
   group { ['deployers', 'AbiSaaS']:
