@@ -5,12 +5,12 @@ class anycloud::managervm (
 
   # ensure rvm doesn't timeout finding binary rubies
   # the umask line is the default content when installing rvm if file does not exist
-  # file { '/etc/rvmrc':
-  #   content => 'umask u=rwx,g=rwx,o=rx
-  #               export rvm_max_time_flag=20
-  #               ',
-  #   mode    => '0664',
-  # }
+  file { '/etc/rvmrc':
+    content => 'umask u=rwx,g=rwx,o=rx
+                export rvm_max_time_flag=20
+                ',
+    mode    => '0664',
+  }
 
   rvm_system_ruby { $rubyver: 
     ensure      => present, 
