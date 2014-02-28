@@ -16,18 +16,20 @@ class anycloud::managervm (
     ensure      => present, 
     default_use => true,
     require     => File['/etc/rvmrc']
-  } 
-
-  rvm_gemset { "${rubyver}@AbiSaaS":
-    ensure  => present,
-    require => Rvm_system_ruby[$rubyver]
   }
 
   ## Install puppet in new gemset so we can use it again
   rvm_gem { 'puppet':
       name         => 'puppet',
       ruby_version => $rubyver,
-      ensure       => '3.4.2',
+      ensure       => present,
+      require      => Rvm_system_ruby[$rubyver]
+  }
+
+  rvm_gem { 'bundler':
+      name         => 'bundler',
+      ruby_version => $rubyver,
+      ensure       => present,
       require      => Rvm_system_ruby[$rubyver]
   }
 }

@@ -35,13 +35,25 @@
 #
 # Copyright 2014 Your name here, unless otherwise noted.
 #
-class anycloud {
+class anycloud (
+  $environment  = "development",
+  # $config       = {
+  #     "abiquo" => {
+  #       "apiurl"      => "http://localhost/api",
+  #       "consoleurl"  => "http://localhost/ui",
+  #       "apiuser"     => "admin",
+  #       "apipass"     => "xabiquo"
+  #     }
+  #   },
+  $rubyver      = 'ruby-2.0.0-p247',
+  $passengerver = '4.0.33',
+  $consoleurl   = "http://localhost/ui",
+  $apiurl       = "http://localhost/api",
+){
   include anycloud::epel
   include anycloud::redis
   include anycloud::mysql
-
-  $rubyver = 'ruby-2.0.0-p247'
-  $passengerver = '4.0.33'
+  include anycloud::firewall
 
   $deps = ["sqlite", "sqlite-devel", "crontabs", "curl", "sudo", "bzip2", "nodejs", "git"]
   package { $deps:
@@ -56,13 +68,31 @@ class anycloud {
   }
 
   apache::mod { 'env': }
+  class { 'apache::mod::dir': }
+  class { 'apache::mod::rewrite': }
+  
+  class { 'apache::mod::proxy_html': }
+
+  $proxy_pass = [
+    { 'path' => '/abiquo/api', 'url' => $apiurl },
+    { 'path' => '/abiquo/ui', 'url' => $consoleurl },
+  ]
 
   apache::vhost { 'anycloud.example.com':
-    port    => '443',
-    docroot => '/opt/rails/AbiSaaS/current/public',
-    ssl     => true,
-    setenv  => ['RAILS_ENV development'],
-    require => File['/opt/rails/AbiSaaS/current']
+    port            => '443',
+    docroot         => '/opt/rails/AbiSaaS/current/public',
+    ssl             => true,
+    setenv          => ["RAILS_ENV ${environment}"],
+    custom_fragment => "ProxyPassReverseCookiePath /api /abiquo/api",
+    proxy_pass      => $proxy_pass,
+    require         => File['/opt/rails/AbiSaaS/current']
+  }
+
+  apache::vhost { 'abiquo-redir':
+    port      => '80',
+    docroot   => '/var/www/html',
+    ssl       => false,
+    rewrites  => [ { rewrite_rule => ['.* https://%{SERVER_NAME}%{REQUEST_URI} [L,R=301]'] } ],
   }
 
   class { 'rvm::passenger::apache': 
@@ -86,6 +116,11 @@ class anycloud {
   class { 'selinux': 
     mode => 'disabled'
   }
+
+  # service { 'iptables':
+  #   ensure  => stopped,
+  #   enable  => false
+  # }
 
   host { 'Add hostname to /etc/hosts':
     ensure  => present,
@@ -138,7 +173,11 @@ class anycloud {
     require   => User['AbiSaaS']
   }
 
-  file { [ '/opt/rails', '/opt/rails/AbiSaaS', '/opt/rails/AbiSaaS/releases', '/opt/rails/AbiSaaS/releases/dummy', '/opt/rails/AbiSaaS/releases/dummy/public' ]:
+  file { [ '/opt/rails', 
+          '/opt/rails/AbiSaaS', 
+          '/opt/rails/AbiSaaS/releases', 
+          '/opt/rails/AbiSaaS/releases/dummy', 
+          '/opt/rails/AbiSaaS/releases/dummy/public' ]:
     ensure  => directory,
     owner   => 'AbiSaaS',
     group   => 'apache',
@@ -160,6 +199,16 @@ class anycloud {
     owner   => 'root',
     group   => 'root'
   }
+
+  # $fileconfig = { "${environment}" => $config }
+  # file { '/opt/rails/AbiSaaS/shared/config/config.yml':
+  #   ensure  => present,
+  #   content => hash2yaml($fileconfig),
+  #   owner   => 'AbiSaaS',
+  #   group   => 'apache',
+  #   mode    => '0755',
+  #   require => File['/opt/rails/AbiSaaS/shared/config']
+  # }
 
   rvm::system_user { ['AbiSaaS', 'apache']:
     require => User['AbiSaaS']
