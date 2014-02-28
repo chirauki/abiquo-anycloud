@@ -1,14 +1,12 @@
 class anycloud::firewall inherits anycloud {
-  resources { "firewall":
-    purge => true
-  }
-
   Firewall {
     before  => Class['anycloud::firewall::post'],
     require => Class['anycloud::firewall::pre'],
   }
 
   class { ['anycloud::firewall::pre', 'anycloud::firewall::post']: }
+  ->
+  resources { "firewall": purge => true }
 
   firewall { '100 allow http and https access':
     port   => [80, 443],
