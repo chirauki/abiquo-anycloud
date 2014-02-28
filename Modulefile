@@ -10,3 +10,4 @@ project_page 'UNKNOWN'
 ## Add dependencies, if any:
 dependency 'maestrodev/rvm', '>= 1.4.1'
 dependency 'spiette/selinux', '>= 0.5.4'
+dependency 'puppetlabs/firewall', '>= 1.0.0'
