@@ -6,25 +6,13 @@ class anycloud::managervm (
   rvm_system_ruby { $rubyver: 
     ensure      => present, 
     default_use => true,
-    require     => Package['ca-certificates']
-  }
-
-  package { 'ca-certificates':
-    ensure  => latest,
-  }
-
-  ## Install puppet in new gemset so we can use it again
-  rvm_gem { 'puppet':
-      name         => 'puppet',
-      ruby_version => $rubyver,
-      ensure       => present,
-      require      => Rvm_system_ruby[$rubyver]
+    require     => File['/etc/rvmrc']
   }
 
   rvm_gem { 'bundler':
       name         => 'bundler',
       ruby_version => $rubyver,
-      ensure       => present,
-      require      => Rvm_system_ruby[$rubyver]
+      ensure       => "1.3.5",
+      require      => [ Rvm_system_ruby[$rubyver], Exec['Update gems'] ]
   }
 }
