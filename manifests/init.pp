@@ -37,14 +37,6 @@
 #
 class anycloud (
   $environment  = "development",
-  # $config       = {
-  #     "abiquo" => {
-  #       "apiurl"      => "http://localhost/api",
-  #       "consoleurl"  => "http://localhost/ui",
-  #       "apiuser"     => "admin",
-  #       "apipass"     => "xabiquo"
-  #     }
-  #   },
   $rubyver      = 'ruby-2.0.0-p247',
   $passengerver = '4.0.33',
   $consoleurl   = "http://localhost/ui",
@@ -116,11 +108,6 @@ class anycloud (
   class { 'selinux': 
     mode => 'disabled'
   }
-
-  # service { 'iptables':
-  #   ensure  => stopped,
-  #   enable  => false
-  # }
 
   host { 'Add hostname to /etc/hosts':
     ensure  => present,
@@ -199,16 +186,6 @@ class anycloud (
     owner   => 'root',
     group   => 'root'
   }
-
-  # $fileconfig = { "${environment}" => $config }
-  # file { '/opt/rails/AbiSaaS/shared/config/config.yml':
-  #   ensure  => present,
-  #   content => hash2yaml($fileconfig),
-  #   owner   => 'AbiSaaS',
-  #   group   => 'apache',
-  #   mode    => '0755',
-  #   require => File['/opt/rails/AbiSaaS/shared/config']
-  # }
 
   rvm::system_user { ['AbiSaaS', 'apache']:
     require => User['AbiSaaS']
