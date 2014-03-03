@@ -94,7 +94,6 @@ class anycloud (
 
   class { 'anycloud::managervm':
     rubyver => $rubyver,
-    require => Class['apache']
   }
 
   # To overcome https://github.com/puppetlabs/puppetlabs-apache/pull/607
