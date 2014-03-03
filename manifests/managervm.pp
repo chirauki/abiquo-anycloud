@@ -9,10 +9,15 @@ class anycloud::managervm (
     require     => File['/etc/rvmrc']
   }
 
+  rvm_gemset { "${rubyver}@AbiSaaS":
+    ensure  => present,
+    require => Rvm_system_ruby[$rubyver]
+  }
+
   rvm_gem { 'bundler':
       name         => 'bundler',
       ruby_version => $rubyver,
       ensure       => "1.3.5",
-      require      => [ Rvm_system_ruby[$rubyver], Exec['Update gems'] ]
+      require      => [ Rvm_system_ruby[$rubyver], Rvm_gemset["${rubyver}@AbiSaaS"] ]
   }
 }
