@@ -187,7 +187,5 @@ class anycloud (
     group   => 'root'
   }
 
-  rvm::system_user { ['AbiSaaS', 'apache']:
-    require => User['AbiSaaS']
-  }
+  rvm::system_user { 'AbiSaaS': ; 'apache': }
 }
