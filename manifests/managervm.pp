@@ -1,34 +1,39 @@
 class anycloud::managervm (
   $rubyver = 'ruby-2.0.0-p247',
 ){
-  include rvm
 
   rvm_system_ruby { $rubyver: 
     ensure      => present, 
     default_use => true,
-    require     => File['/etc/rvmrc']
+    require     => Exec["Set ${rubyver} as default"]
   }
 
-  exec { 'Set default gemset':
+  exec { "Install RVM":
     path    => "/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/local/rvm/bin",
-    command => "rvm gemset use ${rubyver}@AbiSaaS --default",
-    require => Rvm_gemset["${rubyver}@AbiSaaS"]
-  }
-
-  rvm_gemset { "${rubyver}@AbiSaaS":
-    ensure  => present,
-    require => Rvm_system_ruby[$rubyver]
+    command => "curl -sSL https://get.rvm.io | sudo bash -s stable",
+    user    => "AbiSaaS",
+    require => [ User["AbiSaaS"], File['/etc/sudoers.d/abisaas'] ]
+  }->
+  exec { "Install Ruby version ${rubyver}":
+    path    => "/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/local/rvm/bin",
+    command => "rvm install ${rubyver}",
+    require => Exec["Install RVM"]
+  }->
+  exec { "Set ${rubyver} as default":
+    path    => "/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/local/rvm/bin",
+    command => "rvm use ${rubyver} --default",
+    require => Exec["Install Ruby version ${rubyver}"]
   }
 
   rvm_gem { "bundler":
       ruby_version => "${rubyver}",
       ensure       => "1.3.5",
-      require      => Rvm_system_ruby[$rubyver]
+      require      => Exec["Set ${rubyver} as default"]
   }
 
   rvm_gem { "puppet":
       ruby_version => "${rubyver}",
       ensure       => latest,
-      require      => Rvm_system_ruby[$rubyver]
+      require      => Exec["Set ${rubyver} as default"]
   }
 }

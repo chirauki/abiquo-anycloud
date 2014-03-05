@@ -90,6 +90,7 @@ class anycloud (
   class { 'rvm::passenger::apache': 
     version       => $passengerver, 
     ruby_version  => $rubyver,
+    require       => Class['anycloud::managervm']
   }
 
   class { 'anycloud::managervm':
