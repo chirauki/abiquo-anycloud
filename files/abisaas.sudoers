@@ -1,3 +1,4 @@
+Defaults:AbiSaaS  !requiretty
 AbiSaaS ALL=(ALL) NOPASSWD: /usr/sbin/service 
 AbiSaaS ALL=(ALL) NOPASSWD: /etc/init.d/httpd
 AbiSaaS ALL=(ALL) NOPASSWD: /bin/bash -s stable
