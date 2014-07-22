@@ -78,7 +78,9 @@ class anycloud (
     require      => File['/etc/pki/anycloud']
   }
 
-  class { 'nginx': 
+  class { 'nginx':
+    confd_purge    => true,
+    vhost_purge   => true,
     proxy_set_header  => [
       'Host $host',
       'X-Real-IP $remote_addr',
