@@ -38,9 +38,9 @@
 class anycloud (
   $environment  = "development",
   $rubyver      = 'ruby-2.0.0-p247',
-  $passengerver = '4.0.33',
-  $consoleurl   = "http://localhost/ui",
-  $apiurl       = "http://localhost/api",
+  $consolessl   = true,
+  $consolehost  = 'localhost:443',
+  $apihost      = 'localhost:8011',
 ){
   include anycloud::epel
   include anycloud::redis
@@ -53,57 +53,148 @@ class anycloud (
     require => Package['epel-release']
   }
 
-  class { 'apache':
-    default_mods        => false,
-    default_vhost       => false,
-    default_confd_files => false,
-  }
-
-  apache::mod { 'env': }
-  class { 'apache::mod::dir': }
-  class { 'apache::mod::rewrite': }
-  
-  class { 'apache::mod::proxy_html': }
-
-  $proxy_pass = [
-    { 'path' => '/abiquo/api', 'url' => $apiurl },
-    { 'path' => '/abiquo/ui', 'url' => $consoleurl },
-  ]
-
-  apache::vhost { 'anycloud.example.com':
-    port            => '443',
-    docroot         => '/opt/rails/AbiSaaS/current/public',
-    ssl             => true,
-    setenv          => ["RAILS_ENV ${environment}"],
-    custom_fragment => "ProxyPassReverseCookiePath /api /abiquo/api",
-    proxy_pass      => $proxy_pass,
-    require         => File['/opt/rails/AbiSaaS/current']
-  }
-
-  apache::vhost { 'abiquo-redir':
-    port      => '80',
-    docroot   => '/var/www/html',
-    ssl       => false,
-    rewrites  => [ { rewrite_rule => ['.* https://%{SERVER_NAME}%{REQUEST_URI} [L,R=301]'] } ],
-  }
-
-  class { 'rvm::passenger::apache': 
-    version       => $passengerver, 
-    ruby_version  => $rubyver,
-    require       => Class['anycloud::managervm']
-  }
-
   class { 'anycloud::managervm':
     rubyver => $rubyver,
   }
 
-  # To overcome https://github.com/puppetlabs/puppetlabs-apache/pull/607
-  exec { 'Change passenger module file':
-    path    => "/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin",
-    command => "sed -i \"s/modules\\/mod_passenger.so/\\/usr\\/local\\/rvm\\/gems\\/${rubyver}\\/gems\\/passenger-${passengerver}\\/buildout\\/apache2\\/mod_passenger.so/g\" /etc/httpd/conf.d/passenger.load",
-    unless  => "grep passenger-${passengerver} /etc/httpd/conf.d/passenger.load",
-    require => File['passenger.load'],
-    notify  => Service['httpd']
+  file { '/etc/pki/anycloud':
+    ensure => directory
+  }
+
+  openssl::certificate::x509 { $::fqdn:
+    ensure       => present,
+    country      => 'ES',
+    organization => 'Abiquo.com',
+    commonname   => $::fqdn,
+    state        => 'Barcelona',
+    locality     => 'Barcelona',
+    unit         => 'anyCloud',
+    email        => 'support@abiquo.com',
+    days         => 3650,
+    base_dir     => '/etc/pki/anycloud',
+    owner        => 'root',
+    group        => 'root',
+    force        => false,
+    require      => File['/etc/pki/anycloud']
+  }
+
+  class { 'nginx': 
+    proxy_set_header  => [
+      'Host $host',
+      'X-Real-IP $remote_addr',
+      'X-Forwarded-Ssl on',
+      'X-Forwarded-For $proxy_add_x_forwarded_for',
+    ]
+  }
+
+  # Proxy upstreams
+  nginx::resource::upstream { 'anycloud.puma':
+    members => [
+      'unix:///tmp/anycloud.sock'
+    ]
+  }
+
+  nginx::resource::upstream { 'api':
+    members => [
+      $apihost
+    ]
+  }
+
+  nginx::resource::upstream { 'ui':
+    members => [
+      $consolehost
+    ]
+  } 
+
+  # HTTP vHost, redir to SSL
+  nginx::resource::vhost { 'anycloud.plain':
+    ensure            => present,
+    server_name       => [$::fqdn],
+    www_root          => '/var/www/html',
+    vhost_cfg_append  => {
+      'rewrite' => '^ https://$server_name$request_uri? permanent'
+    }
+  }
+
+  # SSL vHost
+  nginx::resource::vhost { 'anycloud.ssl':
+    ensure               => present,
+    www_root             => '/opt/rails/AbiSaaS/current/public',
+    use_default_location => false,
+    server_name          => [$::fqdn],
+    listen_port          => 443,
+    ssl                  => true,
+    ssl_cert             => "/etc/pki/anycloud/${::fqdn}.crt",
+    ssl_key              => "/etc/pki/anycloud/${::fqdn}.key",
+    ssl_port             => 443,
+    vhost_cfg_prepend     => {
+      'set' => '$redir 0',
+    },
+    access_log           => '/var/log/nginx/anycloud_ssl_access.log',
+    error_log            => '/var/log/nginx/anycloud_ssl_error.log',
+  }
+
+  nginx::resource::location { "root":
+    ensure          => present,
+    ssl             => true,
+    ssl_only        => true,
+    vhost           => "anycloud.ssl",
+    location        => '/',
+    proxy           => 'http://anycloud.puma',
+  }
+
+  nginx::resource::location { "api":
+    ensure          => present,
+    ssl             => true,
+    ssl_only        => true,
+    vhost           => "anycloud.ssl",
+    location        => '/api',
+    proxy           => 'http://api',
+  }
+
+  nginx::resource::location { "ui":
+    ensure          => present,
+    ssl             => true,
+    ssl_only        => true,
+    vhost           => "anycloud.ssl",
+    location        => '/ui',
+    proxy           => $consolessl ? {
+      true  => 'https://ui/ui/',
+      false => 'http://ui/ui/'
+    }
+  } 
+
+  nginx::resource::location { "assets":
+    ensure          => present,
+    ssl             => true,
+    ssl_only        => true,
+    vhost           => "anycloud.ssl",
+    location        => '~* ^/assets/',
+    location_custom_cfg => {
+      expires     => '1y',
+      add_header  => 'Cache-Control public'
+    }
+  }
+
+  nginx::resource::location { "javascripts":
+    ensure          => present,
+    ssl             => true,
+    ssl_only        => true,
+    vhost           => "anycloud.ssl",
+    location        => '~* ^/javascripts/',
+    location_custom_cfg => {
+      expires     => '1y',
+      add_header  => 'Cache-Control public'
+    }
+  }
+
+  nginx::resource::location { "working":
+    ensure          => present,
+    ssl             => true,
+    ssl_only        => true,
+    www_root        => '/opt/rails/AbiSaaS/current/public',
+    vhost           => "anycloud.ssl",
+    location        => '/working'
   }
 
   class { 'selinux': 

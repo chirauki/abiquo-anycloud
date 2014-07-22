@@ -8,7 +8,8 @@ description 'UNKNOWN'
 project_page 'UNKNOWN'
 
 ## Add dependencies, if any:
-dependency 'puppetlabs/apache', '>= 0.11.0'
+dependency 'jfryman/nginx', '>= 0.0.9'
+dependency 'camptocamp/openssl', '>= 0.3.1'
 dependency 'maestrodev/rvm', '>= 1.4.1'
 dependency 'spiette/selinux', '>= 0.5.4'
 dependency 'puppetlabs/firewall', '>= 1.0.0'
