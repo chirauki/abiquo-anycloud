@@ -68,7 +68,7 @@ class anycloud (
     "development" => {
       "adapter" => "sqlite3",
       "database" => "db/development.sqlite3",
-      "pool" => 5
+      "pool" => 5,
       "timeout" => 5000
     }
   },
@@ -85,7 +85,7 @@ class anycloud (
       "mixpanel" => {
          "api_key" => "notset",
          "api_secret" => "notset",
-         "token" => "notset",
+         "token" => "notset"
       }
     }
   }
