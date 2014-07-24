@@ -41,6 +41,54 @@ class anycloud (
   $consolessl   = true,
   $consolehost  = 'localhost:443',
   $apihost      = 'localhost:8011',
+  $confighash   = {
+    "development" => {
+      "abiquo" => {
+        "consoleurl" => "http://192.168.2.211/ui",
+        "apiurl" => "http://192.168.2.211/api",
+        "apiuser" => "admin",
+        "apipass" => "xabiquo",
+        "user_role_id" => 4,
+        "invited_role_id" => 2,
+        "datacenter_id" => 2,
+        "database_host" => "192.168.2.211",
+        "database_user" => "AbiSaaS",
+        "database_pass" => "pass"
+      },
+      "resque_redis_url" => "redis://localhost:6379",
+      "google_analytics" => "UA-NOTSET",
+      "max_allowed_logins" => 3,
+      "logins_per_tweet" => 10,
+      "jasper_server" => "http://dajasper:8080/jasperserver/rest_v2",
+      "workflow_default" => "ACCEPT",
+      "tweet_links" => [ "http://goo.gl/3hn6Yk", "http://bit.ly/NbaZUP", "http://tinyurl.com/ptwwmr5", "http://ow.ly/tNdZD" ]
+    }
+  },
+  $dbhash       = {
+    "development" => {
+      "adapter" => "sqlite3",
+      "database" => "db/development.sqlite3",
+      "pool" => 5
+      "timeout" => 5000
+    }
+  },
+  $apikeyshash  = {
+    "development" => {
+      "twitter" => {
+        "api_key" => "notset",
+        "api_secret" => "notset"
+      },
+      "linkedin" => {
+        "api_key" => "notset",
+        "api_secret" => "notset"
+      },
+      "mixpanel" => {
+         "api_key" => "notset",
+         "api_secret" => "notset",
+         "token" => "notset",
+      }
+    }
+  }
 ){
   include anycloud::epel
   include anycloud::redis
@@ -258,12 +306,43 @@ class anycloud (
           '/opt/rails/AbiSaaS', 
           '/opt/rails/AbiSaaS/releases', 
           '/opt/rails/AbiSaaS/releases/dummy', 
-          '/opt/rails/AbiSaaS/releases/dummy/public' ]:
+          '/opt/rails/AbiSaaS/releases/dummy/public',
+          '/opt/rails/AbiSaaS/shared/config',
+          '/opt/rails/AbiSaaS/shared/config/environments'
+          '/opt/rails/AbiSaaS/shared/config/initializers' ]:
     ensure  => directory,
     owner   => 'AbiSaaS',
-    group   => 'apache',
+    group   => 'deployers',
     mode    => '0755',
     require => [ Group['deployers'], User['AbiSaaS'] ]
+  }
+
+  # Base config files
+  file { '/opt/rails/AbiSaaS/shared/config/config.yml':
+    ensure  => present,
+    content => hash2yaml($confighash)
+    mode    => '0755',
+    owner   => 'AbiSaaS',
+    group   => 'AbiSaaS',
+    require => File['/opt/rails/AbiSaaS/shared/config']
+  }
+
+  file { '/opt/rails/AbiSaaS/shared/config/database.yml':
+    ensure  => present,
+    content => hash2yaml($dbhash)
+    mode    => '0755',
+    owner   => 'AbiSaaS',
+    group   => 'AbiSaaS',
+    require => File['/opt/rails/AbiSaaS/shared/config']
+  }
+
+  file { '/opt/rails/AbiSaaS/shared/config/api_keys.yml':
+    ensure  => present,
+    content => hash2yaml($apikeyshash)
+    mode    => '0755',
+    owner   => 'AbiSaaS',
+    group   => 'AbiSaaS',
+    require => File['/opt/rails/AbiSaaS/shared/config']
   }
 
   file { '/opt/rails/AbiSaaS/current':
