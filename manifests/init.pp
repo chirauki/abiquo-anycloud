@@ -307,9 +307,8 @@ class anycloud (
           '/opt/rails/AbiSaaS/releases', 
           '/opt/rails/AbiSaaS/releases/dummy', 
           '/opt/rails/AbiSaaS/releases/dummy/public',
-          '/opt/rails/AbiSaaS/shared/config',
-          '/opt/rails/AbiSaaS/shared/config/environments'
-          '/opt/rails/AbiSaaS/shared/config/initializers' ]:
+          '/opt/rails/AbiSaaS/shared',
+          '/opt/rails/AbiSaaS/shared/config' ]:
     ensure  => directory,
     owner   => 'AbiSaaS',
     group   => 'deployers',
@@ -320,7 +319,7 @@ class anycloud (
   # Base config files
   file { '/opt/rails/AbiSaaS/shared/config/config.yml':
     ensure  => present,
-    content => hash2yaml($confighash)
+    content => hash2yaml($confighash),
     mode    => '0755',
     owner   => 'AbiSaaS',
     group   => 'AbiSaaS',
@@ -329,7 +328,7 @@ class anycloud (
 
   file { '/opt/rails/AbiSaaS/shared/config/database.yml':
     ensure  => present,
-    content => hash2yaml($dbhash)
+    content => hash2yaml($dbhash),
     mode    => '0755',
     owner   => 'AbiSaaS',
     group   => 'AbiSaaS',
@@ -338,7 +337,7 @@ class anycloud (
 
   file { '/opt/rails/AbiSaaS/shared/config/api_keys.yml':
     ensure  => present,
-    content => hash2yaml($apikeyshash)
+    content => hash2yaml($apikeyshash),
     mode    => '0755',
     owner   => 'AbiSaaS',
     group   => 'AbiSaaS',
