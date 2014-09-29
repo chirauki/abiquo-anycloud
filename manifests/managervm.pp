@@ -33,7 +33,7 @@ class anycloud::managervm (
 
   rvm_gem { "puppet":
       ruby_version => "${rubyver}",
-      ensure       => latest,
+      ensure       => "3.7.1",
       require      => Exec["Set ${rubyver} as default"]
   }
 }
