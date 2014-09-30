@@ -1,5 +1,7 @@
 class anycloud::managervm (
-  $rubyver = 'ruby-2.0.0-p247',
+  $rubyver          = 'ruby-2.0.0-p247',
+  $bundler_gem_ver  = '1.3.5',
+  $puppet_gem_ver   = '3.7.1',
 ){
 
   rvm_system_ruby { $rubyver: 
