@@ -36,12 +36,15 @@
 # Copyright 2014 Your name here, unless otherwise noted.
 #
 class anycloud (
-  $environment  = "development",
-  $rubyver      = 'ruby-2.0.0-p247',
-  $consolessl   = true,
-  $consolehost  = 'localhost:443',
-  $apihost      = 'localhost:8011',
-  $confighash   = {
+  $environment      = "development",
+  $rubyver          = 'ruby-2.0.0-p247',
+  $certname         = $::fqdn,
+  $consolessl       = true,
+  $consolehost      = 'localhost:443',
+  $apihost          = 'localhost:8011',
+  $bundler_gem_ver  = '1.3.5',
+  $puppet_gem_ver   = '3.7.1',
+  $confighash       = {
     "development" => {
       "abiquo" => {
         "consoleurl" => "http://192.168.2.211/ui",
@@ -64,7 +67,7 @@ class anycloud (
       "tweet_links" => [ "http://goo.gl/3hn6Yk", "http://bit.ly/NbaZUP", "http://tinyurl.com/ptwwmr5", "http://ow.ly/tNdZD" ]
     }
   },
-  $dbhash       = {
+  $dbhash           = {
     "development" => {
       "adapter" => "sqlite3",
       "database" => "db/development.sqlite3",
@@ -72,7 +75,7 @@ class anycloud (
       "timeout" => 5000
     }
   },
-  $apikeyshash  = {
+  $apikeyshash      = {
     "development" => {
       "twitter" => {
         "api_key" => "notset",
@@ -102,7 +105,9 @@ class anycloud (
   }
 
   class { 'anycloud::managervm':
-    rubyver => $rubyver,
+    rubyver         => $rubyver,
+    puppet_gem_ver  => $puppet_gem_ver,
+    bundler_gem_ver => $bundler_gem_ver,
   }
 
   file { '/etc/pki/anycloud':
@@ -113,7 +118,7 @@ class anycloud (
     ensure       => present,
     country      => 'ES',
     organization => 'Abiquo.com',
-    commonname   => $::fqdn,
+    commonname   => $certname,
     state        => 'Barcelona',
     locality     => 'Barcelona',
     unit         => 'anyCloud',
@@ -292,14 +297,6 @@ class anycloud (
     managehome  => true,
     shell       => "/bin/bash",
     require     => Group['deployers', 'AbiSaaS']
-  }
-
-  ssh_authorized_key { 'Ssh key':
-    ensure    => present,
-    key       => 'AAAAB3NzaC1yc2EAAAADAQABAAABAQCxwT+/WJ7h3DkUcxlJwZ+p3r87RAR7//sj/b3Z4lOcFJaZfLUxe4DBxasyUfNd7xtuMnT0hzKAoB/5odUpQeHWYcu4rc4d03872VKmU2StHdbytMu8wH+gK06nAsiq4bqTMuW+WzlNqysVLIgWWvbSKqwVZVbDvYYM7GjqmUX8VOMaI+Xsi/gegRS0FT0mwGwK3gbCFI8DTLbFlz1/UWt5D9Nvfji0QaCsQiG/GNdiqAMIDu25JP0XWlBIzA83VmXF5yVmgMjKMgrScOH2pvpZMGwGebotWCdTbwFjAmDyb8rYpXPjdIk/gm9whhCpSw/qDUORxifo8AoO/V7pXyK7',
-    user      => 'AbiSaaS',
-    type      => 'ssh-rsa',
-    require   => User['AbiSaaS']
   }
 
   file { [ '/opt/rails', 
