@@ -37,7 +37,7 @@
 #
 class anycloud (
   $environment      = "development",
-  $deploy_root      = '/opt/rails/AbiSaaS/current'
+  $deploy_root      = '/opt/rails/AbiSaaS/current',
   $rubyver          = 'ruby-2.0.0-p247',
   $certname         = $::fqdn,
   $consolessl       = true,
