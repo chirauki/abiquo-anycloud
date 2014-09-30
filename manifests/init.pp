@@ -37,6 +37,7 @@
 #
 class anycloud (
   $environment      = "development",
+  $deploy_root      = '/opt/rails/AbiSaaS/current'
   $rubyver          = 'ruby-2.0.0-p247',
   $certname         = $::fqdn,
   $consolessl       = true,
@@ -164,7 +165,7 @@ class anycloud (
   # HTTP vHost, redir to SSL
   nginx::resource::vhost { 'anycloud.plain':
     ensure            => present,
-    server_name       => [$::fqdn],
+    server_name       => [$certname, $::fqdn],
     www_root          => '/var/www/html',
     vhost_cfg_append  => {
       'rewrite' => '^ https://$server_name$request_uri? permanent'
@@ -174,9 +175,9 @@ class anycloud (
   # SSL vHost
   nginx::resource::vhost { 'anycloud.ssl':
     ensure               => present,
-    www_root             => '/opt/rails/AbiSaaS/current/public',
+    www_root             => "$deploy_root/public",
     use_default_location => false,
-    server_name          => [$::fqdn],
+    server_name          => [$certname, $::fqdn],
     listen_port          => 443,
     ssl                  => true,
     ssl_cert             => "/etc/pki/anycloud/${::fqdn}.crt",
@@ -247,7 +248,7 @@ class anycloud (
     ensure          => present,
     ssl             => true,
     ssl_only        => true,
-    www_root        => '/opt/rails/AbiSaaS/current/public',
+    www_root        => "$deploy_root/public",
     vhost           => "anycloud.ssl",
     location        => '/working'
   }
