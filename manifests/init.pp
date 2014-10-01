@@ -115,7 +115,7 @@ class anycloud (
     ensure => directory
   }
 
-  openssl::certificate::x509 { $::fqdn:
+  openssl::certificate::x509 { $certname:
     ensure       => present,
     country      => 'ES',
     organization => 'Abiquo.com',
@@ -175,13 +175,13 @@ class anycloud (
   # SSL vHost
   nginx::resource::vhost { 'anycloud.ssl':
     ensure               => present,
-    www_root             => "$deploy_root/public",
+    www_root             => "$deploy_root/current/public",
     use_default_location => false,
     server_name          => [$certname, $::fqdn],
     listen_port          => 443,
     ssl                  => true,
-    ssl_cert             => "/etc/pki/anycloud/${::fqdn}.crt",
-    ssl_key              => "/etc/pki/anycloud/${::fqdn}.key",
+    ssl_cert             => "/etc/pki/anycloud/${certname}.crt",
+    ssl_key              => "/etc/pki/anycloud/${certname}.key",
     ssl_port             => 443,
     vhost_cfg_prepend     => {
       'set' => '$redir 0',
