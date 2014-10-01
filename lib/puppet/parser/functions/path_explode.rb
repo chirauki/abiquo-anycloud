@@ -17,6 +17,6 @@ module Puppet::Parser::Functions
 
     path = args[0]
     arrpath = path.split('/')
-    arrpath.map.with_index {|i, j| arrpath[0..j].join('/') }.delete_if {|i| i.empty? }
+    arrpath.each_with_index.map {|i, j| arrpath[0..j].join('/') }.delete_if {|i| i.empty? }
   end
 end
