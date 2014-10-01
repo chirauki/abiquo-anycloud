@@ -300,13 +300,9 @@ class anycloud (
     require     => Group['deployers', 'AbiSaaS']
   }
 
-  file { [ '/opt/rails', 
-          '/opt/rails/AbiSaaS', 
-          '/opt/rails/AbiSaaS/releases', 
-          '/opt/rails/AbiSaaS/releases/dummy', 
-          '/opt/rails/AbiSaaS/releases/dummy/public',
-          '/opt/rails/AbiSaaS/shared',
-          '/opt/rails/AbiSaaS/shared/config' ]:
+  file { [ "$deploy_root/current", 
+           "$deploy_root/archive", 
+           "$deploy_root/config" ]:
     ensure  => directory,
     owner   => 'AbiSaaS',
     group   => 'deployers',
@@ -315,7 +311,7 @@ class anycloud (
   }
 
   # Base config files
-  file { '/opt/rails/AbiSaaS/shared/config/config.yml':
+  file { "$deploy_root/config/config.yml":
     ensure  => present,
     content => hash2yaml($confighash),
     mode    => '0755',
@@ -324,7 +320,7 @@ class anycloud (
     require => File['/opt/rails/AbiSaaS/shared/config']
   }
 
-  file { '/opt/rails/AbiSaaS/shared/config/database.yml':
+  file { "$deploy_root/config/database.yml":
     ensure  => present,
     content => hash2yaml($dbhash),
     mode    => '0755',
@@ -333,21 +329,13 @@ class anycloud (
     require => File['/opt/rails/AbiSaaS/shared/config']
   }
 
-  file { '/opt/rails/AbiSaaS/shared/config/api_keys.yml':
+  file { "$deploy_root/config/api_keys.yml":
     ensure  => present,
     content => hash2yaml($apikeyshash),
     mode    => '0755',
     owner   => 'AbiSaaS',
     group   => 'AbiSaaS',
     require => File['/opt/rails/AbiSaaS/shared/config']
-  }
-
-  file { '/opt/rails/AbiSaaS/current':
-    ensure  => link,
-    target  => '/opt/rails/AbiSaaS/releases/dummy',
-    owner   => 'AbiSaaS',
-    group   => 'AbiSaaS',
-    require => File['/opt/rails/AbiSaaS/releases/dummy']
   }
 
   file { '/etc/sudoers.d/abisaas':
