@@ -301,7 +301,6 @@ class anycloud (
   }
 
   file { [ "$deploy_root/current", 
-           "$deploy_root/archive", 
            "$deploy_root/config" ]:
     ensure  => directory,
     owner   => 'AbiSaaS',
@@ -317,7 +316,7 @@ class anycloud (
     mode    => '0755',
     owner   => 'AbiSaaS',
     group   => 'AbiSaaS',
-    require => File['/opt/rails/AbiSaaS/shared/config']
+    require => File["$deploy_root/config"]
   }
 
   file { "$deploy_root/config/database.yml":
@@ -326,7 +325,7 @@ class anycloud (
     mode    => '0755',
     owner   => 'AbiSaaS',
     group   => 'AbiSaaS',
-    require => File['/opt/rails/AbiSaaS/shared/config']
+    require => File["$deploy_root/config"]
   }
 
   file { "$deploy_root/config/api_keys.yml":
@@ -335,7 +334,7 @@ class anycloud (
     mode    => '0755',
     owner   => 'AbiSaaS',
     group   => 'AbiSaaS',
-    require => File['/opt/rails/AbiSaaS/shared/config']
+    require => File["$deploy_root/config"]
   }
 
   file { '/etc/sudoers.d/abisaas':
