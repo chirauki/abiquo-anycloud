@@ -302,7 +302,7 @@ class anycloud (
 
   $curr_array = path_explode("$deploy_root/current")
   $conf_array = path_explode("$deploy_root/config")
-  $diff = difference($curr_array, conf_array)
+  $diff = difference($curr_array, $conf_array)
   $path_array = concat($conf_array, $diff)
   file { $path_array:
     ensure  => directory,
