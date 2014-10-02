@@ -1,4 +1,6 @@
 Defaults:AbiSaaS  !requiretty
 AbiSaaS ALL=(ALL) NOPASSWD: /usr/sbin/service* 
 AbiSaaS ALL=(ALL) NOPASSWD: /etc/init.d/nginx*
+AbiSaaS ALL=(ALL) NOPASSWD: /etc/init.d/monit*
+AbiSaaS ALL=(ALL) NOPASSWD: /usr/bin/monit*
 AbiSaaS ALL=(ALL) NOPASSWD: /bin/bash -s stable
