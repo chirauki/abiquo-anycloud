@@ -291,6 +291,14 @@ class anycloud (
     require => File['/home/AbiSaaS']
   }
 
+  file { '.gemrc':
+    path    => "/home/AbiSaaS/.gemrc",
+    source  => "puppet:///modules/anycloud/gemrc",
+    owner   => 'AbiSaaS',
+    group   => 'AbiSaaS',
+    require => File['/home/AbiSaaS']
+  }
+
   user { 'AbiSaaS':
     ensure      => present,
     gid         => 'deployers',
