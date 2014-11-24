@@ -10,6 +10,13 @@ class anycloud::managervm (
     require     => Exec["Set ${rubyver} as default"]
   }
 
+  exec { "Get RVM GPG key":
+    path    => "/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/local/rvm/bin",
+    command => "gpg2 --keyserver hkp://keys.gnupg.net --recv-keys D39DC0E3",
+    user    => "AbiSaaS",
+    onlyif  => "/usr/bin/which gpg2",
+    require => [ User["AbiSaaS"], File['/etc/sudoers.d/abisaas'] ]
+  }->
   exec { "Install RVM":
     path    => "/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/local/rvm/bin",
     command => "curl -sSL https://get.rvm.io | sudo bash -s stable",
