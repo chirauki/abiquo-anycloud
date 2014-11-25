@@ -26,6 +26,7 @@ class anycloud::managervm (
   exec { "Install Ruby version ${rubyver}":
     path    => "/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/local/rvm/bin",
     command => "rvm install ${rubyver}",
+    creates => "/usr/local/rvm/gems/ruby-2.0.0-p247",
     require => Exec["Install RVM"]
   }->
   exec { "Set ${rubyver} as default":
